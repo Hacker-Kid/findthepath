@@ -3,7 +3,8 @@ import requests
 import threading
 import sys
 import signal
-##python test.py -u http://127.0.0.1/find -t 3 -o 10 -d 1.txt -s save2.txt
+import time
+##python findthepath.py -u http://127.0.0.1/find -t 3 -o 10 -d path.txt -s save.txt
 def _init_(banner):
 
     path_list = ['-u','','-t','','-s','','-d','','-o','']
@@ -57,10 +58,10 @@ def _dict(dict_file):
     num = len(files)#字典中fuzz的数量
     return num,files
 def _send_(files,thred,i,url,save,over_time):
-
     flag = 0#丢包次数
     for admin in files[i*thred:(i+1)*thred]:
-        if flag:
+
+        if flags:
             break
         try:
             admin = admin.strip('\n')
@@ -72,14 +73,20 @@ def _send_(files,thred,i,url,save,over_time):
                 '''
                 如果不是404则将其写入save文件
                 '''
-        except KeyboardInterrupt:
-            break
         except:
+            print(flag)
             flag += 1
             if flag % 10000==0:
                 print('Already lose',flag,'packets')
                 #每丢10000个包提醒一次
-
+    global over
+    over += 1
+    if over == thrd:
+        print("------------------------------------------Down--------------------------------------------------")
+        #结束
+        save.close()
+        print('Please input Ctrl+C to quit')
+        
 def _send():
     banner = '''
     --------------------------------------
@@ -91,6 +98,7 @@ def _send():
     |       -o timeout to request        |
     --------------------------------------
             '''
+    global thrd
     try:
         url,thrd,save,dict_file,over_time = _init_(banner)
     except:
@@ -118,22 +126,23 @@ _| """ |_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_| """ |_|"""""|_|"""""|
     for i in range(0,thrd):
         t = threading.Thread(target=_send_,args=(files,thred,i,url,save,over_time))
         thread_list.append(t)
+        t.setDaemon(True)
         t.start()
         #开启线程
-    for t in thread_list:
-        t.join()
-        #等待线程跑完
+    time.sleep(1000000)
     
-    print("------------------------------------------Down--------------------------------------------------")
-    #结束
-    save.close()
+
 def signal_handler(signal,frame):
+    global flags
     print('You pressed Ctrl+C!')
-    flag = True
+    flags = True
+    sys.exit(0)
 
 if __name__ == '__main__':
+    global flags
+    global over
+    over = 0
+    flags = False
     signal.signal(signal.SIGINT,signal_handler)
-    global flag
-    flag = False
     _send()
     
