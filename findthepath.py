@@ -57,9 +57,11 @@ def _dict(dict_file):
     num = len(files)#字典中fuzz的数量
     return num,files
 def _send_(files,thred,i,url,save,over_time):
-    global flag
+
     flag = 0#丢包次数
     for admin in files[i*thred:(i+1)*thred]:
+        if flag:
+            break
         try:
             admin = admin.strip('\n')
             new_url = url+'/'+admin
@@ -121,9 +123,17 @@ _| """ |_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_| """ |_|"""""|_|"""""|
     for t in thread_list:
         t.join()
         #等待线程跑完
+    
     print("------------------------------------------Down--------------------------------------------------")
     #结束
     save.close()
+def signal_handler(signal,frame):
+    print('You pressed Ctrl+C!')
+    flag = True
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT,signal_handler)
+    global flag
+    flag = False
     _send()
+    
